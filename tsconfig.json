@@ -3,10 +3,12 @@
     "target": "ESNext",
     "experimentalDecorators": true,
     "moduleResolution": "node",
+    "outDir": "dist",
     "baseUrl": "./src/",
     "module": "ESNext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
     "strict": true,
     "skipLibCheck": true
   }

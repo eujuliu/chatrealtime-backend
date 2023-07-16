@@ -12,7 +12,9 @@ datasource db {
 }
 
 model User {
-  id       Bytes  @id @default(dbgenerated("(uuid_to_bin(uuid()))")) @db.Binary(16)
-  nickname String @unique
-  password String @db.VarChar(80)
+  id        Bytes    @id @default(dbgenerated("(uuid_to_bin(uuid()))")) @db.Binary(16)
+  nickname  String   @unique
+  password  String   @db.VarChar(80)
+  createdAt DateTime @db.DateTime()
+  updatedAt DateTime @db.DateTime()
 }
