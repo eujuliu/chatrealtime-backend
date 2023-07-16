@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { Result } from 'core/domain/result';
 import { ValidationError } from 'core/errors';
+import { Result, exception, success } from 'core/logic/result';
 import { validatePassword } from 'core/utils/validate-password';
 
 interface PasswordProps {
@@ -28,25 +28,18 @@ export class Password {
     });
   }
 
-  static create(props: PasswordProps): Result<ValidationError | Password> {
+  static create(props: PasswordProps): Result<ValidationError, Password> {
     if (props.hashed) {
-      return {
-        ok: true,
-        answer: new Password({ value: props.value, hashed: props.hashed }),
-      };
+      return success(
+        new Password({ value: props.value, hashed: props.hashed }),
+      );
     }
 
     if (!validatePassword(props.value)) {
-      return {
-        ok: false,
-        answer: new ValidationError(),
-      };
+      return exception(new ValidationError());
     }
 
-    return {
-      ok: true,
-      answer: new Password({ value: props.value, hashed: false }),
-    };
+    return success(new Password({ value: props.value, hashed: false }));
   }
 
   async compare(plainText: string): Promise<boolean> {

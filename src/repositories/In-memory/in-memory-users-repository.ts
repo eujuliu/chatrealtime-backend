@@ -1,5 +1,5 @@
 import { UsersRepository } from 'repositories/users-repository';
-import { PersistenceUser } from 'mappers/user-mapper';
+import { PersistenceUser } from 'core/utils/mappers/user-mapper';
 import { v4 as uuid } from 'uuid';
 
 export class InMemoryUsersRepository implements UsersRepository {

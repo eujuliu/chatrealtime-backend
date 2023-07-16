@@ -1,7 +1,7 @@
 import { ValidationError } from 'core/errors';
 import { Password } from './password';
 import { validateNickname } from 'core/utils/validate-nickname';
-import { Result } from 'core/domain/result';
+import { Result, exception, success } from 'core/logic/result';
 
 interface UserProps {
   id: string | null;
@@ -27,27 +27,23 @@ export class User {
   static create(
     nickname: string,
     password: string,
-  ): Result<ValidationError | User> {
+  ): Result<ValidationError, User> {
     if (!validateNickname(nickname)) {
-      return {
-        ok: false,
-        answer: new ValidationError(),
-      };
+      return exception(new ValidationError());
     }
 
     const passwordOrError = Password.create({ value: password });
 
-    if (!passwordOrError.ok) {
-      return passwordOrError as Result<ValidationError>;
+    if (passwordOrError.exception()) {
+      return exception(passwordOrError.answer);
     }
 
-    return {
-      ok: true,
-      answer: new User({
+    return success(
+      new User({
         id: null,
         nickname,
         password: passwordOrError.answer as Password,
       }),
-    };
+    );
   }
 }

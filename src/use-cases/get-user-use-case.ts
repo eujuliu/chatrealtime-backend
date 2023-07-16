@@ -1,6 +1,6 @@
 import { Result } from 'core/domain/result';
 import { ValidationError } from 'core/errors';
-import { UserMapper } from 'mappers/user-mapper';
+import { UserMapper } from 'core/utils/mappers/user-mapper';
 import { UsersRepository } from 'repositories/users-repository';
 
 interface Request {
