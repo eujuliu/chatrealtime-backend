@@ -9,21 +9,24 @@ interface Request {
   password: string;
 }
 
+export interface CreateUserResponse {
+  id: string;
+  nickname: string;
+}
+
 export class CreateUserUseCase {
   constructor(private usersRepository: UsersRepository) {}
 
   async execute({
     nickname,
     password,
-  }: Request): Promise<
-    Result<ValidationError, { id: string; nickname: string }>
-  > {
+  }: Request): Promise<Result<ValidationError, CreateUserResponse>> {
     const exists = await this.usersRepository.exists(nickname);
 
     if (exists) {
       return exception(
         new ValidationError({
-          code: 409,
+          statusCode: 409,
           message: 'The nickname you provided is already in use.',
         }),
       );

@@ -3,8 +3,6 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { CreateUserUseCase } from './create-user-use-case';
 import { UsersRepository } from 'repositories/users-repository';
 import { ValidationError } from 'core/errors';
-import jwt from 'jsonwebtoken';
-import { SECRET } from 'config';
 
 describe('Create a user', () => {
   let userRepository: UsersRepository;
@@ -36,7 +34,7 @@ describe('Create a user', () => {
 
     expect(responseOrError.answer).toStrictEqual(
       new ValidationError({
-        code: 409,
+        statusCode: 409,
         message: 'The nickname you provided is already in use.',
       }),
     );

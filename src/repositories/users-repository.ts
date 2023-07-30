@@ -1,7 +1,14 @@
 import { PersistenceUser } from 'core/utils/mappers/user-mapper';
 
+export interface IndexUser {
+  id: string;
+  nickname: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UsersRepository {
   exists(nickname: string): Promise<boolean>;
   store(user: PersistenceUser): Promise<{ id: string; nickname: string }>;
-  show(nickname: string): Promise<PersistenceUser | null>;
+  show(by: 'id' | 'nickname', value: string): Promise<PersistenceUser | null>;
 }

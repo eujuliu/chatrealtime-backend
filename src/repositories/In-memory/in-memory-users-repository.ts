@@ -27,8 +27,11 @@ export class InMemoryUsersRepository implements UsersRepository {
     };
   }
 
-  async show(nickname: string): Promise<PersistenceUser | null> {
-    const user = this.users.find((user) => user.nickname === nickname);
+  async show(
+    by: 'id' | 'nickname',
+    value: string,
+  ): Promise<PersistenceUser | null> {
+    const user = this.users.find((user) => user[by] === value);
 
     return user as PersistenceUser | null;
   }

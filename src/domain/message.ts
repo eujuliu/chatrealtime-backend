@@ -1,34 +1,37 @@
-import { Result, exception, success } from 'core/logic/result';
 import { ValidationError } from 'core/errors';
+import { Result, exception, success } from 'core/logic/result';
+
+interface From {
+  id: string;
+  nickname: string;
+}
 
 interface MessageProps {
   id: string | null;
   message: string;
-  sender: string;
+  from: From;
   where: string;
-  reply: string | null;
+  reply: Message | null;
 }
 
 export class Message {
   readonly id: string | null;
   readonly message: string;
-  readonly sender: string;
+  readonly from: From;
   readonly where: string;
-  readonly reply: string | null;
-  readonly createdAt: string;
+  reply: Message | null;
 
-  constructor({ id, message, sender, where, reply }: MessageProps) {
+  constructor({ id, message, from, where, reply }: MessageProps) {
     this.id = id;
     this.message = message;
-    this.sender = sender;
+    this.from = from;
     this.where = where;
     this.reply = reply;
-    this.createdAt = new Date().toISOString();
   }
 
   static create({
     message,
-    sender,
+    from,
     where,
     reply,
   }: Omit<MessageProps, 'id'>): Result<ValidationError, Message> {
@@ -36,7 +39,7 @@ export class Message {
       return exception(
         new ValidationError({
           message: 'The length of the message exceeds the limit.',
-          code: 400,
+          statusCode: 400,
         }),
       );
     }
@@ -45,7 +48,7 @@ export class Message {
       new Message({
         id: null,
         message,
-        sender,
+        from,
         where,
         reply,
       }),

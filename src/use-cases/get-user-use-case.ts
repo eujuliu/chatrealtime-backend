@@ -1,5 +1,5 @@
-import { Result } from 'core/domain/result';
 import { ValidationError } from 'core/errors';
+import { Result, exception, success } from 'core/logic/result';
 import { UserMapper } from 'core/utils/mappers/user-mapper';
 import { UsersRepository } from 'repositories/users-repository';
 
@@ -15,33 +15,24 @@ export class GetUserUseCase {
     nickname,
     password,
   }: Request): Promise<
-    Result<ValidationError | { id: string; nickname: string }>
+    Result<ValidationError, { id: string; nickname: string }>
   > {
-    const user = await this.usersRepository.show(nickname);
+    const user = await this.usersRepository.show('nickname', nickname);
 
     if (!user) {
-      return {
-        ok: false,
-        answer: new ValidationError(),
-      };
+      return exception(new ValidationError());
     }
 
     const domainUser = UserMapper.toDomain(user);
     const passwordIsEqual = await domainUser.password.compare(password);
 
     if (!passwordIsEqual) {
-      return {
-        ok: false,
-        answer: new ValidationError(),
-      };
+      return exception(new ValidationError());
     }
 
-    return {
-      ok: true,
-      answer: {
-        id: user.id as string,
-        nickname: user.nickname,
-      },
-    };
+    return success({
+      id: user.id as string,
+      nickname: user.nickname,
+    });
   }
 }

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/infra/http/app.ts",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "lint": "prettier --check src/**",
     "lint:fix": "eslint src/** --fix && prettier --write src/**",
     "migrate:dev": "prisma migrate dev",
@@ -35,6 +36,7 @@
     "@types/uuid": "^9.0.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
+    "@vitest/coverage-v8": "^0.33.0",
     "eslint": "^8.44.0",
     "prettier": "3.0.0",
     "prisma": "^4.16.2",
