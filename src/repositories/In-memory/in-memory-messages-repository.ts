@@ -25,4 +25,16 @@ export class InMemoryMessagesRepository implements MessagesRepository {
 
     return message;
   }
+
+  async index(where: string, take?: number, skip?: number): Promise<Message[]> {
+    const messages = this.messages
+      .filter((message) => message.where === where)
+      .reverse();
+
+    if (typeof take === 'number' && typeof skip === 'number') {
+      return messages.slice(skip, take + skip);
+    }
+
+    return messages;
+  }
 }
