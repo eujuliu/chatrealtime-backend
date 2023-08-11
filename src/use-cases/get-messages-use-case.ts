@@ -1,6 +1,6 @@
-import { Result, success } from 'core/logic/result';
-import { Message } from 'domain/message';
+import { Message } from 'core/domain/message';
 import { MessagesRepository } from 'repositories/messages-repository';
+import { Result, success } from 'utils/result';
 
 interface Request {
   where: string;

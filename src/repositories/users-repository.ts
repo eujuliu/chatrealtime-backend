@@ -1,4 +1,4 @@
-import { PersistenceUser } from 'core/utils/mappers/user-mapper';
+import { PersistenceUser } from 'mappers/user-mapper';
 
 export interface IndexUser {
   id: string;

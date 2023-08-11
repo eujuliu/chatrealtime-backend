@@ -1,8 +1,8 @@
 import { ValidationError } from 'core/errors';
-import { User } from 'domain/user';
-import { UserMapper } from 'core/utils/mappers/user-mapper';
+import { User } from 'core/domain/user';
 import { UsersRepository } from 'repositories/users-repository';
-import { Result, exception, success } from 'core/logic/result';
+import { Result, exception, success } from 'utils/result';
+import { UserMapper } from 'mappers/user-mapper';
 
 interface Request {
   nickname: string;

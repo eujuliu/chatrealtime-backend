@@ -7,7 +7,7 @@ import { InMemoryMessagesRepository } from 'repositories/In-memory/in-memory-mes
 import { InMemoryUsersRepository } from 'repositories/In-memory/in-memory-users-repository';
 import { v4 as uuid } from 'uuid';
 import { CreateUserResponse, CreateUserUseCase } from './create-user-use-case';
-import { Message } from 'domain/message';
+import { Message } from 'core/domain/message';
 
 describe('Get messages (use-case)', async () => {
   const where = uuid();

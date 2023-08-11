@@ -1,10 +1,11 @@
 import { ValidationError } from 'core/errors';
-import { Result, exception, success } from 'core/logic/result';
-import { Message } from 'domain/message';
+import { Result, exception, success } from 'utils/result';
+import { Message } from 'core/domain/message';
+import { UserMapper } from 'mappers/user-mapper';
 import { MessagesRepository } from 'repositories/messages-repository';
 import { UsersRepository } from 'repositories/users-repository';
 
-interface Request {
+export interface CreateMessageRequest {
   message: string;
   from: string;
   where: string;
@@ -22,7 +23,7 @@ export class CreateMessageUseCase {
     from,
     reply,
     where,
-  }: Request): Promise<Result<ValidationError, Message>> {
+  }: CreateMessageRequest): Promise<Result<ValidationError, Message>> {
     const user = await this.usersRepository.show('id', from);
     const replyMessage = await this.messagesRepository.show(reply ? reply : '');
 
@@ -34,11 +35,13 @@ export class CreateMessageUseCase {
       replyMessage.reply = null;
     }
 
+    const domainUser = UserMapper.toDomain(user);
+
     const messageOrError = Message.create({
       message,
       from: {
-        id: user.id as string,
-        nickname: user.nickname,
+        id: domainUser.id,
+        nickname: domainUser.nickname,
       },
       where,
       reply: replyMessage,

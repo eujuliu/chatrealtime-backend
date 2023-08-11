@@ -1,6 +1,6 @@
 import { UsersRepository } from 'repositories/users-repository';
-import { PersistenceUser } from 'core/utils/mappers/user-mapper';
-import { v4 as uuid } from 'uuid';
+import { binaryToUuid } from 'utils/binary-to-uuid';
+import { PersistenceUser } from 'mappers/user-mapper';
 
 export class InMemoryUsersRepository implements UsersRepository {
   private readonly users: PersistenceUser[] = [];
@@ -14,16 +14,11 @@ export class InMemoryUsersRepository implements UsersRepository {
   async store(
     user: PersistenceUser,
   ): Promise<{ id: string; nickname: string }> {
-    const userWithId = {
-      ...user,
-      id: uuid(),
-    };
-
-    this.users.push(userWithId);
+    this.users.push(user);
 
     return {
-      id: userWithId.id,
-      nickname: userWithId.nickname,
+      id: binaryToUuid(user.id),
+      nickname: user.nickname,
     };
   }
 
@@ -31,8 +26,14 @@ export class InMemoryUsersRepository implements UsersRepository {
     by: 'id' | 'nickname',
     value: string,
   ): Promise<PersistenceUser | null> {
-    const user = this.users.find((user) => user[by] === value);
+    const user = this.users.find((user) =>
+      by === 'id' ? binaryToUuid(user[by]) === value : user[by] === value,
+    );
 
-    return user as PersistenceUser | null;
+    if (!user) {
+      return null;
+    }
+
+    return user;
   }
 }

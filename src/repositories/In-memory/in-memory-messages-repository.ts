@@ -1,4 +1,4 @@
-import { Message } from 'domain/message';
+import { Message } from 'core/domain/message';
 import { MessagesRepository } from 'repositories/messages-repository';
 import { v4 as uuid } from 'uuid';
 

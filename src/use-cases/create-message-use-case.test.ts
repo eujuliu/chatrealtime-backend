@@ -6,7 +6,7 @@ import { UsersRepository } from 'repositories/users-repository';
 import { InMemoryUsersRepository } from 'repositories/In-memory/in-memory-users-repository';
 import { CreateUserResponse, CreateUserUseCase } from './create-user-use-case';
 import { v4 as uuid } from 'uuid';
-import { Message } from 'domain/message';
+import { Message } from 'core/domain/message';
 
 describe('Create a message (use-case)', () => {
   let messagesRepository: MessagesRepository;

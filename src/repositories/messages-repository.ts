@@ -1,4 +1,4 @@
-import { Message } from 'domain/message';
+import { Message } from 'core/domain/message';
 
 export interface MessagesRepository {
   store(message: Message): Promise<Message>;

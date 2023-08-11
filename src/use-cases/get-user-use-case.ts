@@ -1,6 +1,6 @@
 import { ValidationError } from 'core/errors';
-import { Result, exception, success } from 'core/logic/result';
-import { UserMapper } from 'core/utils/mappers/user-mapper';
+import { Result, exception, success } from 'utils/result';
+import { UserMapper } from 'mappers/user-mapper';
 import { UsersRepository } from 'repositories/users-repository';
 
 interface Request {
@@ -31,8 +31,8 @@ export class GetUserUseCase {
     }
 
     return success({
-      id: user.id as string,
-      nickname: user.nickname,
+      id: domainUser.id,
+      nickname: domainUser.nickname,
     });
   }
 }
