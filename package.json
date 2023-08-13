@@ -7,8 +7,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsx watch src/core/infra/http/app.ts",
-    "test": "dotenv -e .env.dev npx prisma migrate deploy && vitest",
-    "test:coverage": "dotenv -e .env.dev npx prisma migrate deploy && vitest run --coverage",
+    "test": "dotenv -e .env.dev npx prisma migrate deploy && dotenv -e .env.dev vitest",
+    "test:coverage": "dotenv -e .env.dev npx prisma migrate deploy && dotenv -e .env.dev vitest run --coverage",
     "lint": "prettier --check src/**",
     "lint:fix": "eslint src/** --fix && prettier --write src/**",
     "migrate:dev": "prisma migrate dev",

@@ -26,15 +26,13 @@ jobs:
       - name: Start container
         run: npm run docker:up
 
-      - name: Install Node
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
         with:
           node-version: '18.x'
           cache: 'npm'
-      - run: npm ci
 
-      - name: Test
-        run: npm run test:coverage
+      - run: npm ci
+      - run: npm run test:coverage
 
       - name: Report Coverage
         if: always()
