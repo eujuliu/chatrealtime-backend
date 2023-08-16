@@ -1,6 +1,6 @@
 import { PORT } from 'config';
 import { server } from 'config/server';
-import '../http/websocket';
+import './websocket';
 
 server.listen(PORT, () => {
   console.log(`

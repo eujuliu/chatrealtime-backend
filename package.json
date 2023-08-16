@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "dev": "tsx watch src/core/infra/http/app.ts",
+    "dev": "tsx watch src/infra/http/app.ts",
     "test": "dotenv -e .env.dev npx prisma migrate deploy && dotenv -e .env.dev vitest",
     "test:coverage": "dotenv -e .env.dev -- npx prisma migrate deploy && dotenv -e .env.dev -- vitest run --coverage",
     "lint": "prettier --check src/**",
@@ -56,6 +56,6 @@
     "vitest-mock-extended": "^1.2.0"
   },
   "prisma": {
-    "schema": "./src/core/infra/prisma/schema.prisma"
+    "schema": "./src/infra/prisma/schema.prisma"
   }
 }

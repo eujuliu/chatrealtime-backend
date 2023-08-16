@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { routes } from 'core/infra/http/api/v1';
+import { routes } from 'infra/http/api/v1';
 import cookieParser from 'cookie-parser';
 
 const app = express();

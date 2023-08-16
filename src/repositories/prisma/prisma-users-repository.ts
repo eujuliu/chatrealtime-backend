@@ -1,7 +1,8 @@
 import { binaryToUuid } from 'utils/binary-to-uuid';
-import { prisma } from 'core/infra/prisma/client';
-import { PersistenceUser } from 'mappers/user-mapper';
+import { prisma } from 'infra/prisma/client';
+import { DomainUser } from 'mappers/user-mapper';
 import { UsersRepository } from 'repositories/users-repository';
+import { uuidToBinary } from 'utils/uuid-to-binary';
 
 export class PrismaUsersRepository implements UsersRepository {
   async exists(nickname: string): Promise<boolean> {
@@ -14,12 +15,10 @@ export class PrismaUsersRepository implements UsersRepository {
     return !!exists;
   }
 
-  async store(
-    user: PersistenceUser,
-  ): Promise<{ id: string; nickname: string }> {
+  async store(user: DomainUser): Promise<{ id: string; nickname: string }> {
     const persistenceUser = await prisma.user.create({
       data: {
-        id: user.id,
+        id: uuidToBinary(user.id),
         nickname: user.nickname,
         password: user.password,
         createdAt: user.createdAt,
@@ -35,8 +34,8 @@ export class PrismaUsersRepository implements UsersRepository {
 
   async show(
     by: 'id' | 'nickname',
-    value: string,
-  ): Promise<PersistenceUser | null> {
+    value: string | Buffer,
+  ): Promise<DomainUser | null> {
     const user = await prisma.user.findUnique({
       where: {
         [by]: value,
@@ -47,6 +46,9 @@ export class PrismaUsersRepository implements UsersRepository {
       return null;
     }
 
-    return user;
+    return {
+      ...user,
+      id: binaryToUuid(user.id),
+    };
   }
 }

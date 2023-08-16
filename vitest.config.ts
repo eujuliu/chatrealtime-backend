@@ -4,7 +4,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
-    setupFiles: ['src/tests/setup.ts'],
+    setupFiles: ['src/config/tests/setup.ts'],
     coverage: {
       reporter: ['text', 'json-summary', 'json'],
       lines: 60,

@@ -1,6 +1,7 @@
 import { UsersRepository } from 'repositories/users-repository';
 import { binaryToUuid } from 'utils/binary-to-uuid';
-import { PersistenceUser } from 'mappers/user-mapper';
+import { DomainUser, PersistenceUser } from 'mappers/user-mapper';
+import { uuidToBinary } from 'utils/uuid-to-binary';
 
 export class InMemoryUsersRepository implements UsersRepository {
   private readonly users: PersistenceUser[] = [];
@@ -11,21 +12,16 @@ export class InMemoryUsersRepository implements UsersRepository {
     return !!user;
   }
 
-  async store(
-    user: PersistenceUser,
-  ): Promise<{ id: string; nickname: string }> {
-    this.users.push(user);
+  async store(user: DomainUser): Promise<{ id: string; nickname: string }> {
+    this.users.push({ ...user, id: uuidToBinary(user.id) });
 
     return {
-      id: binaryToUuid(user.id),
+      id: user.id,
       nickname: user.nickname,
     };
   }
 
-  async show(
-    by: 'id' | 'nickname',
-    value: string,
-  ): Promise<PersistenceUser | null> {
+  async show(by: 'id' | 'nickname', value: string): Promise<DomainUser | null> {
     const user = this.users.find((user) =>
       by === 'id' ? binaryToUuid(user[by]) === value : user[by] === value,
     );
@@ -34,6 +30,9 @@ export class InMemoryUsersRepository implements UsersRepository {
       return null;
     }
 
-    return user;
+    return {
+      ...user,
+      id: binaryToUuid(user.id),
+    };
   }
 }

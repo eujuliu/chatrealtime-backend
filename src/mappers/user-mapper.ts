@@ -1,4 +1,3 @@
-import { binaryToUuid } from 'utils/binary-to-uuid';
 import { uuidToBinary } from 'utils/uuid-to-binary';
 import { Password } from 'core/domain/password';
 import { User } from 'core/domain/user';
@@ -11,10 +10,14 @@ export interface PersistenceUser {
   updatedAt: string;
 }
 
+export interface DomainUser extends Omit<PersistenceUser, 'id'> {
+  id: string;
+}
+
 export class UserMapper {
-  static async toPersistence(user: User): Promise<PersistenceUser> {
+  static async toPersistence(user: User): Promise<DomainUser> {
     return {
-      id: uuidToBinary(user.id),
+      id: user.id,
       nickname: user.nickname,
       password: await user.password.value,
       createdAt: user.createdAt,
@@ -22,16 +25,24 @@ export class UserMapper {
     };
   }
 
-  static toDomain(user: PersistenceUser): User {
+  static toDomain({
+    id,
+    nickname,
+    password,
+    createdAt,
+    updatedAt,
+  }: DomainUser): User {
     const userPassword = Password.create({
-      value: user.password,
+      value: password,
       hashed: true,
     });
 
     const domainUser = new User({
-      id: binaryToUuid(user.id),
-      nickname: user.nickname,
+      id,
+      nickname: nickname,
       password: userPassword.answer as Password,
+      createdAt,
+      updatedAt,
     });
 
     return domainUser;
