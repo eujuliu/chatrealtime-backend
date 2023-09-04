@@ -1,42 +1,40 @@
 import { InternalServerError, ValidationError } from 'core/errors';
 import { Request, Response } from 'express';
 import { generateJsonWebToken } from 'infra/http/auth/generate-json-web-token';
-import { CreateUserUseCase } from 'use-cases/create-user-use-case';
-import { z } from 'zod';
+import { GetUserUseCase } from 'use-cases/get-user-use-case';
 import { convertZodErrorToString } from 'utils/convert-zod-error-to-string';
+import { z } from 'zod';
 
-const CreateUserSchema = z
+const GetUserSchema = z
   .object({
-    nickname: z.string().min(5).max(30).nonempty().toLowerCase().trim(),
+    nickname: z.string().min(5).max(16).nonempty(),
     password: z.string().min(8).nonempty(),
   })
   .strict();
 
-type BodyProps = z.infer<typeof CreateUserSchema>;
+type BodyProps = z.infer<typeof GetUserSchema>;
 
-export class CreateUserController {
-  constructor(private createUserUseCase: CreateUserUseCase) {}
-
+export class GetUserController {
+  constructor(private getUserUseCase: GetUserUseCase) {}
   async handle(
     request: Request<unknown, unknown, BodyProps>,
     response: Response,
   ) {
     try {
       const bodyProps = request.body;
-      const validateBodyProps = CreateUserSchema.safeParse(bodyProps);
+      const validBodyProps = GetUserSchema.safeParse(bodyProps);
 
-      if (!validateBodyProps.success) {
+      if (!validBodyProps.success) {
         return response.status(422).json(
           new ValidationError({
             statusCode: 422,
-            message: convertZodErrorToString(validateBodyProps.error.issues),
+            message: convertZodErrorToString(validBodyProps.error.issues),
           }),
         );
       }
 
-      const responseOrError = await this.createUserUseCase.execute({
-        nickname: validateBodyProps.data.nickname,
-        password: validateBodyProps.data.password,
+      const responseOrError = await this.getUserUseCase.execute({
+        ...validBodyProps.data,
       });
 
       if (responseOrError.exception()) {

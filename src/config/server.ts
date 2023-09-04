@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import { createServer } from 'http';
 import { routes } from 'infra/http/api/v1';
 import cookieParser from 'cookie-parser';
+import 'infra/mongodb';
 
 const app = express();
 const server = createServer(app);

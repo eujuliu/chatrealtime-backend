@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import prisma from 'config/tests/__mocks__/prisma';
-import { User } from '@prisma/client';
 import { uuidToBinary } from 'utils/uuid-to-binary';
 import { v4 as uuid } from 'uuid';
 import { PrismaUsersRepository } from './prisma-users-repository';
+import { binaryToUuid } from 'utils/binary-to-uuid';
 
 vi.mock('infra/prisma/client.ts');
 
@@ -41,7 +41,10 @@ describe('Prisma Users repository', () => {
 
     await prismaUsersRepository.store({ ...exampleUser, id });
 
-    const user = await prismaUsersRepository.show('id', exampleUser.id);
+    const user = await prismaUsersRepository.show(
+      'id',
+      binaryToUuid(exampleUser.id),
+    );
 
     expect(user).toHaveProperty('id', id);
   });

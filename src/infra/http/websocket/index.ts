@@ -1,28 +1,21 @@
 import { io } from 'config/server';
-import { CreateMessageRequest } from 'use-cases/create-message-use-case';
+import { CreateMessageProps } from 'controllers/create-message-controller';
+import { InternalServerError, ValidationError } from 'core/errors';
+import { createMessageFactory } from 'factories/create-message-factory';
 
-io.use((socket, next) => {
-  if (socket.handshake.auth && socket.handshake.auth.token) {
-    const token: string = socket.handshake.auth.token;
+const globalRoomId = '75cbd0df-d756-43a3-a82e-bdbc929e3592';
 
-    console.log(token);
+io.on('connection', (socket) => {
+  socket.join(globalRoomId);
+  socket.emit('chat_global_id', globalRoomId);
 
-    next();
-  } else {
-    next(new Error('Error'));
-  }
-}).on('connection', (socket) => {
-  socket.on('connect_room', ({ room }: { nickname: string; room: string }) => {
-    socket.join(room);
-  });
-
-  socket.on('message', (message: CreateMessageRequest) => {
-    console.log(message);
-
-    io.to(message.where).emit('message', message);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
+  socket.on(
+    'message_send',
+    async (
+      message: CreateMessageProps,
+      acknowledgements: (e: ValidationError | InternalServerError) => void,
+    ) => {
+      await createMessageFactory().handle(message, io, acknowledgements);
+    },
+  );
 });

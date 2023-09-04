@@ -36,7 +36,11 @@ export class Password {
     }
 
     if (!validatePassword(props.value)) {
-      return exception(new ValidationError());
+      return exception(
+        new ValidationError({
+          message: 'This password is not valid',
+        }),
+      );
     }
 
     return success(new Password({ value: props.value, hashed: false }));

@@ -2,10 +2,10 @@ import { server } from 'config/server';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
-describe('Create user POST /auth/signup', () => {
+describe('POST /auth/signup', () => {
   it('should be able to return a JSONWEBTOKEN', async () => {
     const response = await request(server).post('/auth/signup').send({
-      nickname: 'anonymous',
+      nickname: 'anonymous2',
       password: 'Password1!',
     });
 

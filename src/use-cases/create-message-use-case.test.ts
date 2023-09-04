@@ -8,40 +8,40 @@ import { CreateUserResponse, CreateUserUseCase } from './create-user-use-case';
 import { v4 as uuid } from 'uuid';
 import { Message } from 'core/domain/message';
 
+let messagesRepository: MessagesRepository;
+let usersRepository: UsersRepository;
+let createMessageUseCase: CreateMessageUseCase;
+let createUserUseCase: CreateUserUseCase;
+let user: CreateUserResponse;
+let replyMessage: Message;
+
+beforeAll(async () => {
+  messagesRepository = new InMemoryMessagesRepository();
+  usersRepository = new InMemoryUsersRepository();
+  createMessageUseCase = new CreateMessageUseCase(
+    messagesRepository,
+    usersRepository,
+  );
+  createUserUseCase = new CreateUserUseCase(usersRepository);
+
+  user = (
+    await createUserUseCase.execute({
+      nickname: 'test123',
+      password: 'Password!1',
+    })
+  ).answer as CreateUserResponse;
+
+  replyMessage = (
+    await createMessageUseCase.execute({
+      from: user.id as string,
+      message: 'Hi',
+      reply: null,
+      where: uuid(),
+    })
+  ).answer as Message;
+});
+
 describe('Create a message (use-case)', () => {
-  let messagesRepository: MessagesRepository;
-  let usersRepository: UsersRepository;
-  let createMessageUseCase: CreateMessageUseCase;
-  let createUserUseCase: CreateUserUseCase;
-  let user: CreateUserResponse;
-  let replyMessage: Message;
-
-  beforeAll(async () => {
-    messagesRepository = new InMemoryMessagesRepository();
-    usersRepository = new InMemoryUsersRepository();
-    createMessageUseCase = new CreateMessageUseCase(
-      messagesRepository,
-      usersRepository,
-    );
-    createUserUseCase = new CreateUserUseCase(usersRepository);
-
-    user = (
-      await createUserUseCase.execute({
-        nickname: 'test123',
-        password: 'Password!1',
-      })
-    ).answer as CreateUserResponse;
-
-    replyMessage = (
-      await createMessageUseCase.execute({
-        from: user.id as string,
-        message: 'Hi',
-        reply: null,
-        where: uuid(),
-      })
-    ).answer as Message;
-  });
-
   it('should be able to create a message', async () => {
     const messageOrError = await createMessageUseCase.execute({
       message: 'Hello World!',

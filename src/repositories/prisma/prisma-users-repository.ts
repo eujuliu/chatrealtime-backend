@@ -32,13 +32,10 @@ export class PrismaUsersRepository implements UsersRepository {
     };
   }
 
-  async show(
-    by: 'id' | 'nickname',
-    value: string | Buffer,
-  ): Promise<DomainUser | null> {
+  async show(by: 'id' | 'nickname', value: string): Promise<DomainUser | null> {
     const user = await prisma.user.findUnique({
       where: {
-        [by]: value,
+        [by]: by === 'id' ? uuidToBinary(value) : value,
       },
     });
 

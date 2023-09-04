@@ -16,6 +16,7 @@ describe('Get messages (use-case)', async () => {
   let createMessageUseCase: CreateMessageUseCase;
   let getMessagesUseCase: GetMessagesUseCase;
   let createUserUseCase: CreateUserUseCase;
+
   const messages = [
     'Hello!',
     'Welcome to our chat.',

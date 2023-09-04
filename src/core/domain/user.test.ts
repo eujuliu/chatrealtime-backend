@@ -12,6 +12,10 @@ describe('Create user (domain)', () => {
   it('should be not able to create a user', () => {
     const userOrError = User.create('anon', 'Password1!');
 
-    expect(userOrError.answer).toStrictEqual(new ValidationError());
+    expect(userOrError.answer).toStrictEqual(
+      new ValidationError({
+        message: 'This nickname is not valid',
+      }),
+    );
   });
 });

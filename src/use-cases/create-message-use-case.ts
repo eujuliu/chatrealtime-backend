@@ -4,6 +4,7 @@ import { Message } from 'core/domain/message';
 import { UserMapper } from 'mappers/user-mapper';
 import { MessagesRepository } from 'repositories/messages-repository';
 import { UsersRepository } from 'repositories/users-repository';
+import { NODE_ENV } from 'config';
 
 export interface CreateMessageRequest {
   message: string;
@@ -27,12 +28,12 @@ export class CreateMessageUseCase {
     const user = await this.usersRepository.show('id', from);
     const replyMessage = await this.messagesRepository.show(reply ? reply : '');
 
-    if (user === null) {
-      return exception(new ValidationError());
-    }
-
-    if (replyMessage) {
-      replyMessage.reply = null;
+    if (!user) {
+      return exception(
+        new ValidationError({
+          message: NODE_ENV === 'staging' ? 'User not found' : undefined,
+        }),
+      );
     }
 
     const domainUser = UserMapper.toDomain(user);
@@ -44,7 +45,12 @@ export class CreateMessageUseCase {
         nickname: domainUser.nickname,
       },
       where,
-      reply: replyMessage,
+      reply: replyMessage
+        ? {
+            ...replyMessage,
+            from: replyMessage.from.nickname,
+          }
+        : null,
     });
 
     if (messageOrError.exception()) {

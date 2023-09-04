@@ -23,7 +23,9 @@ export class InMemoryUsersRepository implements UsersRepository {
 
   async show(by: 'id' | 'nickname', value: string): Promise<DomainUser | null> {
     const user = this.users.find((user) =>
-      by === 'id' ? binaryToUuid(user[by]) === value : user[by] === value,
+      by === 'id'
+        ? user.id.toString() === uuidToBinary(value).toString()
+        : user[by] === value,
     );
 
     if (!user) {

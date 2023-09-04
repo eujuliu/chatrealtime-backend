@@ -14,7 +14,13 @@ services:
       MYSQL_USER: 'dev'
       MYSQL_PASSWORD: 'dev'
       MYSQL_ROOT_PASSWORD: 'dev'
-    volumes:
-      - my-db:/var/lib/mysql
-volumes:
-  my-db:
+
+  mongo:
+    image: mongo:6.0.9
+    restart: unless-stopped
+    container_name: mongo
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dev
+      MONGO_INITDB_ROOT_PASSWORD: dev

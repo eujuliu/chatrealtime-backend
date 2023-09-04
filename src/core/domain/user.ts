@@ -32,7 +32,11 @@ export class User {
     password: string,
   ): Result<ValidationError, User> {
     if (!validateNickname(nickname)) {
-      return exception(new ValidationError());
+      return exception(
+        new ValidationError({
+          message: 'This nickname is not valid',
+        }),
+      );
     }
 
     const passwordOrError = Password.create({ value: password });

@@ -4,15 +4,15 @@ import { CreateUserUseCase } from './create-user-use-case';
 import { UsersRepository } from 'repositories/users-repository';
 import { ValidationError } from 'core/errors';
 
+let userRepository: UsersRepository;
+let createUserUseCase: CreateUserUseCase;
+
+beforeAll(() => {
+  userRepository = new InMemoryUsersRepository();
+  createUserUseCase = new CreateUserUseCase(userRepository);
+});
+
 describe('Create a user', () => {
-  let userRepository: UsersRepository;
-  let createUserUseCase: CreateUserUseCase;
-
-  beforeAll(() => {
-    userRepository = new InMemoryUsersRepository();
-    createUserUseCase = new CreateUserUseCase(userRepository);
-  });
-
   it('should be able to create a user', async () => {
     const userOrError = await createUserUseCase.execute({
       nickname: 'anonymous',

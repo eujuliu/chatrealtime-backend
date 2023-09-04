@@ -1,17 +1,22 @@
 import { ValidationError } from 'core/errors';
 import { Result, exception, success } from 'utils/result';
+import { v4 as uuid } from 'uuid';
 
 interface From {
   id: string;
   nickname: string;
 }
 
+export interface Reply extends Omit<Message, 'from' | 'createdAt'> {
+  from: string;
+}
+
 interface MessageProps {
-  id: string | null;
+  id?: string | null;
   message: string;
   from: From;
   where: string;
-  reply: Message | null;
+  reply: Reply | null;
 }
 
 export class Message {
@@ -19,13 +24,15 @@ export class Message {
   readonly message: string;
   readonly from: From;
   readonly where: string;
-  reply: Message | null;
+  readonly createdAt: string;
+  reply: Reply | null;
 
   constructor({ id, message, from, where, reply }: MessageProps) {
-    this.id = id;
+    this.id = id || uuid();
     this.message = message;
     this.from = from;
     this.where = where;
+    this.createdAt = new Date().toISOString();
     this.reply = reply;
   }
 
@@ -46,7 +53,6 @@ export class Message {
 
     return success(
       new Message({
-        id: null,
         message,
         from,
         where,
