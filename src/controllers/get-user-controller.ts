@@ -49,7 +49,7 @@ export class GetUserController {
       });
 
       return response
-        .status(201)
+        .status(200)
         .cookie('token', token, {
           secure: true,
           httpOnly: false,
