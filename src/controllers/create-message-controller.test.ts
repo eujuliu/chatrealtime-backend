@@ -7,12 +7,12 @@ import { CreateMessageProps } from './create-message-controller';
 import { InternalServerError, ValidationError } from 'core/errors';
 import { createMessageFactory } from 'factories/create-message-factory';
 import { server } from 'config/server';
-import { PrismaClient } from '@prisma/client';
-import { uuidToBinary } from 'utils/uuid-to-binary';
 import { v4 as uuid } from 'uuid';
+import request from 'supertest';
+import { SECRET } from 'config';
+import jwt from 'jsonwebtoken';
 
 const where = uuid();
-const prisma = new PrismaClient();
 let io: Server;
 let socketBack: SocketBack;
 let socketFront: SocketClient;
@@ -48,19 +48,21 @@ afterAll(() => {
 
 describe('POST wss:message_send', () => {
   it('should be able to create a message', async () => {
-    await prisma.user.create({
-      data: {
-        id: uuidToBinary('0b35b1b9-e239-4404-a860-6f12d0d52882'),
-        nickname: 'test123',
-        password: 'Test12345678!',
-        createdAt: '',
-        updatedAt: '',
-      },
+    const createUserResponse = await request(server).post('/auth/signup').send({
+      nickname: 'anonymous10',
+      password: 'Password1!',
     });
+
+    const token = createUserResponse
+      .get('Set-Cookie')[0]
+      .split('; ')[0]
+      .split('=')[1];
+
+    const id = (jwt.verify(token, SECRET) as { id: string }).id;
 
     socketFront.emit('message_send', {
       message: 'Test',
-      from: '0b35b1b9-e239-4404-a860-6f12d0d52882',
+      from: id,
       where,
       reply: null,
     });

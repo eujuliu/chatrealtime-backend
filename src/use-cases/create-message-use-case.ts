@@ -4,7 +4,6 @@ import { Message } from 'core/domain/message';
 import { UserMapper } from 'mappers/user-mapper';
 import { MessagesRepository } from 'repositories/messages-repository';
 import { UsersRepository } from 'repositories/users-repository';
-import { NODE_ENV } from 'config';
 
 export interface CreateMessageRequest {
   message: string;
@@ -31,7 +30,7 @@ export class CreateMessageUseCase {
     if (!user) {
       return exception(
         new ValidationError({
-          message: NODE_ENV === 'staging' ? 'User not found' : undefined,
+          message: 'Not found an user with this nickname',
         }),
       );
     }

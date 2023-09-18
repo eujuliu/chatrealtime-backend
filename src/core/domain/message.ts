@@ -45,7 +45,8 @@ export class Message {
     if (message.length > 280) {
       return exception(
         new ValidationError({
-          message: 'The length of the message exceeds the limit.',
+          message:
+            'The length of the message exceeds the limit of 280 characters.',
           statusCode: 400,
         }),
       );

@@ -16,10 +16,7 @@ export type QueryParams = z.infer<typeof GetMessagesSchema>;
 
 export class GetMessagesController {
   constructor(private getMessagesUseCase: GetMessagesUseCase) {}
-  async handle(
-    request: Request<unknown, unknown, unknown, QueryParams>,
-    response: Response,
-  ) {
+  async handle(request: Request, response: Response) {
     try {
       const queryParams = request.query;
       const validQueryParams = GetMessagesSchema.safeParse(queryParams);

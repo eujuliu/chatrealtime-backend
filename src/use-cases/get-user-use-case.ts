@@ -2,7 +2,6 @@ import { ValidationError } from 'core/errors';
 import { Result, exception, success } from 'utils/result';
 import { UserMapper } from 'mappers/user-mapper';
 import { UsersRepository } from 'repositories/users-repository';
-import { NODE_ENV } from 'config';
 
 interface Request {
   nickname: string;
@@ -23,7 +22,7 @@ export class GetUserUseCase {
     if (!user) {
       return exception(
         new ValidationError({
-          message: NODE_ENV === 'staging' ? 'User not found' : undefined,
+          message: 'User or password are incorrect, change and try again',
         }),
       );
     }
@@ -34,8 +33,7 @@ export class GetUserUseCase {
     if (!passwordIsEqual) {
       return exception(
         new ValidationError({
-          message:
-            NODE_ENV === 'staging' ? 'Password does not match' : undefined,
+          message: 'User or password are incorrect, change and try again',
         }),
       );
     }

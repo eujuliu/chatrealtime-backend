@@ -1,6 +1,6 @@
 import resetDb from './helpers/reset-db';
-import { beforeEach } from 'vitest';
+import { afterEach } from 'vitest';
 
-beforeEach(async () => {
+afterEach(async () => {
   await resetDb();
 });
