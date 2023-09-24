@@ -1,6 +1,6 @@
 import { InternalServerError, ValidationError } from 'core/errors';
 import { Request, Response } from 'express';
-import { generateJsonWebToken } from 'infra/http/auth/generate-json-web-token';
+import { generateJsonWebToken } from 'infra/app/auth/generate-json-web-token';
 import { CreateUserUseCase } from 'use-cases/create-user-use-case';
 import { z } from 'zod';
 import { convertZodErrorToString } from 'utils/convert-zod-error-to-string';
@@ -17,12 +17,9 @@ type BodyProps = z.infer<typeof CreateUserSchema>;
 export class CreateUserController {
   constructor(private createUserUseCase: CreateUserUseCase) {}
 
-  async handle(
-    request: Request<unknown, unknown, BodyProps>,
-    response: Response,
-  ) {
+  async handle(request: Request, response: Response) {
     try {
-      const bodyProps = request.body;
+      const bodyProps: BodyProps = await request.body;
       const validateBodyProps = CreateUserSchema.safeParse(bodyProps);
 
       if (!validateBodyProps.success) {
@@ -50,20 +47,13 @@ export class CreateUserController {
         nickname: responseOrError.answer.nickname,
       });
 
-      return response
-        .status(201)
-        .cookie('token', token, {
-          secure: true,
-          httpOnly: false,
-          sameSite: 'lax',
-          expires: (() => {
-            const date = new Date();
-            date.setHours(date.getHours() + 12);
-
-            return date;
-          })(),
-        })
-        .send();
+      return response.status(201).json({
+        token,
+        user: {
+          id: responseOrError.answer.id,
+          nickname: responseOrError.answer.nickname,
+        },
+      });
     } catch (error) {
       return response
         .status(500)

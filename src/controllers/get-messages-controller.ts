@@ -7,8 +7,8 @@ import { z } from 'zod';
 const GetMessagesSchema = z
   .object({
     where: z.string().nonempty(),
-    take: z.number().min(0).optional(),
-    skip: z.number().min(0).optional(),
+    take: z.number().optional(),
+    skip: z.number().optional(),
   })
   .strict();
 
@@ -19,7 +19,11 @@ export class GetMessagesController {
   async handle(request: Request, response: Response) {
     try {
       const queryParams = request.query;
-      const validQueryParams = GetMessagesSchema.safeParse(queryParams);
+      const validQueryParams = GetMessagesSchema.safeParse({
+        ...queryParams,
+        take: Number(queryParams?.take) || undefined,
+        skip: Number(queryParams?.skip) || undefined,
+      });
 
       if (!validQueryParams.success) {
         return response.status(422).json(
@@ -30,11 +34,11 @@ export class GetMessagesController {
         );
       }
 
-      const responseOrError = await this.getMessagesUseCase.execute({
+      const messages = await this.getMessagesUseCase.execute({
         ...validQueryParams.data,
       });
 
-      return response.status(200).json(responseOrError.answer);
+      return response.status(200).json(messages.reverse());
     } catch (error) {
       return response
         .status(500)

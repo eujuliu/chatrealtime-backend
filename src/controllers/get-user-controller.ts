@@ -1,6 +1,6 @@
 import { InternalServerError, ValidationError } from 'core/errors';
 import { Request, Response } from 'express';
-import { generateJsonWebToken } from 'infra/http/auth/generate-json-web-token';
+import { generateJsonWebToken } from 'infra/app/auth/generate-json-web-token';
 import { GetUserUseCase } from 'use-cases/get-user-use-case';
 import { convertZodErrorToString } from 'utils/convert-zod-error-to-string';
 import { z } from 'zod';
@@ -48,20 +48,13 @@ export class GetUserController {
         nickname: responseOrError.answer.nickname,
       });
 
-      return response
-        .status(200)
-        .cookie('token', token, {
-          secure: true,
-          httpOnly: false,
-          sameSite: 'lax',
-          expires: (() => {
-            const date = new Date();
-            date.setHours(date.getHours() + 12);
-
-            return date;
-          })(),
-        })
-        .send();
+      return response.status(200).json({
+        token,
+        user: {
+          id: responseOrError.answer.id,
+          nickname: responseOrError.answer.nickname,
+        },
+      });
     } catch (error) {
       return response
         .status(500)

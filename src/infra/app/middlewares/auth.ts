@@ -29,7 +29,7 @@ export async function authenticateToken(
     if (!token) {
       return response.status(401).json(
         new ValidationError({
-          message: 'Token not found',
+          message: 'You need to login or create an account for access',
         }),
       );
     }

@@ -2,8 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { routes } from 'infra/http/api/v1';
-import cookieParser from 'cookie-parser';
+import { routes } from 'infra/app/api/v1';
 import 'infra/mongodb';
 
 const app = express();
@@ -13,14 +12,12 @@ const io = new Server(server, {
     origin: '*',
   },
 });
-
 app.use(
   cors({
     origin: '*',
   }),
 );
 app.use(express.json());
-app.use(cookieParser());
 app.use(routes);
 
 export { server, io };
