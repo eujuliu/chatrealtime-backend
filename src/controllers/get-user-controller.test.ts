@@ -14,7 +14,7 @@ describe('POST /auth/signin', () => {
       password: 'Password1!',
     });
 
-    expect(response.get('Set-Cookie').length).toBe(1);
+    expect(!!response.body?.token).toBeTruthy();
     expect(response.status).toBe(200);
   });
 });

@@ -53,12 +53,9 @@ describe('POST wss:message_send', () => {
       password: 'Password1!',
     });
 
-    const token = createUserResponse
-      .get('Set-Cookie')[0]
-      .split('; ')[0]
-      .split('=')[1];
-
-    const id = (jwt.verify(token, SECRET) as { id: string }).id;
+    const id = (
+      jwt.verify(createUserResponse.body.token, SECRET) as { id: string }
+    ).id;
 
     socketFront.emit('message_send', {
       message: 'Test',

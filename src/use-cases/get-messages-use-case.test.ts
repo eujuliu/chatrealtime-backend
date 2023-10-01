@@ -63,7 +63,7 @@ describe('Get messages (use-case)', async () => {
   it('should be able to get messages', async () => {
     const messages = await getMessagesUseCase.execute({ where });
 
-    expect((messages.answer as Message[]).length).toBe(15);
+    expect(messages.length).toBe(15);
   });
 
   it('should return only 5 messages of 15', async () => {
@@ -73,6 +73,6 @@ describe('Get messages (use-case)', async () => {
       take: 5,
     });
 
-    expect((messages.answer as Message[]).length).toBe(5);
+    expect((messages as Message[]).length).toBe(5);
   });
 });

@@ -9,7 +9,7 @@ describe('POST /auth/signup', () => {
       password: 'Password1!',
     });
 
-    expect(response.get('set-cookie').length).toBeGreaterThan(0);
+    expect(!!response.body?.token).toBeTruthy();
     expect(response.statusCode).toBe(201);
   });
 
