@@ -14,8 +14,8 @@
     "lint:fix": "eslint src/** --fix && prettier --write src/**",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "docker:development:up": "docker compose up -d -f docker-compose.development.yml",
-    "docker:development:down": "docker compose down -f docker-compose.development.yml",
+    "docker:development:up": "docker compose -f docker-compose.development.yml up -d",
+    "docker:development:down": "docker compose -f docker-compose.development.yml down",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
