@@ -1,8 +1,8 @@
-import { io } from 'config/server';
 import { CreateMessageProps } from 'controllers/create-message-controller';
 import { InternalServerError, ValidationError } from 'core/errors';
 import { createMessageFactory } from 'factories/create-message-factory';
 import { authenticateTokenWs } from '../middlewares/auth-ws';
+import { io } from 'config/server';
 
 const globalRoomId = '75cbd0df-d756-43a3-a82e-bdbc929e3592';
 
