@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { routes } from 'infra/app/api/v1';
+import { routes } from 'app/api/v1';
 import 'infra/mongodb';
 
 const app = express();

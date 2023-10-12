@@ -11,8 +11,10 @@ import { v4 as uuid } from 'uuid';
 import request from 'supertest';
 import { SECRET } from 'config';
 import jwt from 'jsonwebtoken';
+import { generateRandomID } from 'utils/generate-random-id';
 
 const where = uuid();
+const nickname = generateRandomID(10);
 let io: Server;
 let socketBack: SocketBack;
 let socketFront: SocketClient;
@@ -49,7 +51,7 @@ afterAll(() => {
 describe('POST wss:message_send', () => {
   it('should be able to create a message', async () => {
     const createUserResponse = await request(server).post('/auth/signup').send({
-      nickname: 'anonymous10',
+      nickname,
       password: 'Password1!',
     });
 

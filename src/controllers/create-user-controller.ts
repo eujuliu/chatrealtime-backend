@@ -1,6 +1,6 @@
 import { InternalServerError, ValidationError } from 'core/errors';
 import { Request, Response } from 'express';
-import { generateJsonWebToken } from 'infra/app/auth/generate-json-web-token';
+import { generateJsonWebToken } from 'app/auth/generate-json-web-token';
 import { CreateUserUseCase } from 'use-cases/create-user-use-case';
 import { z } from 'zod';
 import { convertZodErrorToString } from 'utils/convert-zod-error-to-string';
