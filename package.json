@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/infra/app/index.cjs",
+    "start": "node src/app/index.cjs",
     "build": "tsup",
-    "dev": "tsx watch src/infra/app/index.ts",
+    "dev": "tsx watch src/app/index.ts",
     "test": "dotenv -e .env.dev npx prisma migrate deploy && dotenv -e .env.dev vitest",
     "test:coverage": "dotenv -e .env.dev -- npx prisma migrate deploy && dotenv -e .env.dev -- vitest run --coverage",
     "lint": "prettier --check src/**",

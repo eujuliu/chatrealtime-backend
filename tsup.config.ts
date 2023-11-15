@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src', '!**/*.{sql,toml}'],
+  entry: ['src', '!**/*.{sql,toml,tf}'],
   loader: {
     '.prisma': 'copy',
   },

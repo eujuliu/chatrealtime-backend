@@ -1,9 +1,64 @@
 version: '2.4'
 
 services:
-  app:
+  chat_api:
     container_name: chat-api
-    build: .
+    restart: unless-stopped
+    build:
+      context: .
+      args:
+        PORT: ${PORT}
+    networks:
+      - app-network
+    environment:
+      PORT: ${PORT}
+      SECRET: ${SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      MONGODB_URL: ${MONGODB_URL}
+    env_file:
+      - .env
+
+  nginx:
+    container_name: nginx
+    image: nginx
+    restart: unless-stopped
     ports:
-      - '3000:3000'
-    command: npm run start
+      - '80:80'
+      - '443:443'
+    volumes:
+      - web-root:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf.template
+      - /etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - chat_api
+    networks:
+      - app-network
+    environment:
+      PORT: ${PORT}
+      DOMAIN: ${DOMAIN}
+    env_file:
+      - .env
+
+  certbot:
+    container_name: certbot
+    image: certbot/certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/html
+    depends_on:
+      - nginx
+    command: certonly --webroot --webroot-path=/var/www/html --email ${EMAIL} --agree-tos --no-eff-email --force-renewal --staging -d ${DOMAIN}
+    env_file:
+      - .env
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  web-root:
+
+networks:
+  app-network:
+    driver: bridge
