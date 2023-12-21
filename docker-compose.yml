@@ -18,9 +18,24 @@ services:
     env_file:
       - .env
 
+  certbot:
+    container_name: certbot
+    image: certbot/certbot:latest
+    ports:
+      - '80:80'
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    command: certonly --standalone --preferred-challenges=http --email ${EMAIL} --agree-tos --no-eff-email -d ${DOMAIN}
+    env_file:
+      - .env
+
   nginx:
     container_name: nginx
-    image: nginx
+    depends_on:
+      certbot:
+        condition: service_completed_successfully
+    image: nginx:latest
     restart: unless-stopped
     ports:
       - '80:80'
@@ -29,9 +44,7 @@ services:
       - ./nginx.conf:/etc/nginx/templates/default.conf.template
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - web-root:/var/www/certbot
-    depends_on:
-      - chat_api
+
     networks:
       - app-network
     environment:
@@ -40,23 +53,9 @@ services:
     env_file:
       - .env
 
-  certbot:
-    container_name: certbot
-    image: certbot/certbot
-    volumes:
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-      - web-root:/var/www/certbot
-    depends_on:
-      - nginx
-    command: certonly --webroot --webroot-path=/var/www/certbot --email ${EMAIL} --agree-tos --no-eff-email --force-renewal -d ${DOMAIN}
-    env_file:
-      - .env
-
 volumes:
   certbot-etc:
   certbot-var:
-  web-root:
 
 networks:
   app-network:
