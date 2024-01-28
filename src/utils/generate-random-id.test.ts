@@ -4,6 +4,5 @@ import { generateRandomID } from './generate-random-id';
 test('should be able to return a random id with length equal to 10', () => {
   const randomId = generateRandomID(10);
 
-  console.log(randomId);
   expect(randomId.length).toEqual(10);
 });

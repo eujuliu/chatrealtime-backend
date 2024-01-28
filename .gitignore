@@ -1,6 +1,7 @@
 node_modules
 coverage
 dist
+*terraform*
 
 # Keep environment variables out of version control
 .env
