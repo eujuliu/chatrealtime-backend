@@ -13,7 +13,7 @@ terraform {
 
 provider "aws" {
   region  = "us-east-1"
-  profile = "chatrealtime"
+  profile = "julio"
 }
 
 module "vpc" {

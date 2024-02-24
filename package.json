@@ -17,7 +17,10 @@
     "docker:development:up": "docker compose -f docker-compose.development.yml up -d",
     "docker:development:down": "docker compose -f docker-compose.development.yml down",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "terraform:init": "terraform -chdir='src/infra/provisioning/staging' init",
+    "terraform:apply": "terraform -chdir='src/infra/provisioning/staging' apply",
+    "terraform:destroy": "terraform -chdir='src/infra/provisioning/staging' destroy"
   },
   "keywords": [],
   "author": "",
