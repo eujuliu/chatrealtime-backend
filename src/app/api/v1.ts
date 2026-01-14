@@ -6,6 +6,10 @@ import { authenticateToken } from '../middlewares/auth';
 
 const routes = Router();
 
+routes.get("/ping", (request, response) =>
+  response.send("pong")
+)
+
 routes.post('/auth/signup', (request, response) =>
   createUserFactory().handle(request, response),
 );

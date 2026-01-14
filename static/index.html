@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatRealtime</title>
+  <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <header>
+    <div class="logo">ChatRealtime</div>
+    <div class="header-actions">
+      <button id="theme-toggle" title="Toggle theme"></button>
+      <div class="dropdown">
+        <button id="account-btn">
+          <span class="status-dot"></span>
+          <span id="account-text">Account</span>
+        </button>
+        <div class="dropdown-content" id="dropdown">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="chat">
+    <div class="empty-state" id="empty-state">
+      <div class="icon">&#128172;</div>
+      <p>Login to start chatting</p>
+    </div>
+  </main>
+
+  <button id="scroll-btn" title="Scroll to bottom">
+    &#8595;
+    <span class="badge" id="unread-badge">0</span>
+  </button>
+
+  <div id="typing-indicator"></div>
+
+  <footer>
+    <textarea id="message-input" placeholder="Type a message..." rows="1" disabled></textarea>
+    <button id="send-btn" disabled title="Send message">&#10148;</button>
+  </footer>
+
+  <div id="status-bar">
+    <span class="dot" id="status-dot"></span>
+    <span id="status-text">Disconnected</span>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API_URL = 'http://localhost:3000';
+
+    const state = {
+      socket: null,
+      user: null,
+      token: null,
+      roomId: null,
+      reconnectAttempts: 0,
+      maxReconnectAttempts: 5,
+      isConnected: false,
+      unreadCount: 0,
+      typingUsers: new Map(),
+    };
+
+    const elements = {
+      chat: document.getElementById('chat'),
+      emptyState: document.getElementById('empty-state'),
+      dropdown: document.getElementById('dropdown'),
+      accountBtn: document.getElementById('account-btn'),
+      accountText: document.getElementById('account-text'),
+      statusDot: document.getElementById('status-dot'),
+      statusText: document.getElementById('status-text'),
+      themeToggle: document.getElementById('theme-toggle'),
+      messageInput: document.getElementById('message-input'),
+      sendBtn: document.getElementById('send-btn'),
+      scrollBtn: document.getElementById('scroll-btn'),
+      unreadBadge: document.getElementById('unread-badge'),
+      typingIndicator: document.getElementById('typing-indicator'),
+      toast: document.getElementById('toast'),
+    };
+
+    function init() {
+      loadTheme();
+      updateThemeIcon();
+      renderLoginForm();
+      setupEventListeners();
+      checkExistingSession();
+    }
+
+    function setupEventListeners() {
+      elements.themeToggle.addEventListener('click', toggleTheme);
+
+      elements.accountBtn.addEventListener('click', toggleDropdown);
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+          elements.dropdown.classList.remove('show');
+        }
+      });
+
+      elements.messageInput.addEventListener('input', handleInputChange);
+      elements.messageInput.addEventListener('keydown', handleInputKeydown);
+      elements.sendBtn.addEventListener('click', sendMessage);
+
+      elements.chat.addEventListener('scroll', checkScroll);
+      elements.scrollBtn.addEventListener('click', scrollToBottom);
+    }
+
+    function checkExistingSession() {
+      const token = sessionStorage.getItem('token');
+      const user = sessionStorage.getItem('user');
+      if (token && user) {
+        state.token = token;
+        state.user = JSON.parse(user);
+        connect();
+        renderUserInfo();
+        updateAccountButton();
+      }
+    }
+
+    function loadTheme() {
+      const saved = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      const theme = document.documentElement.getAttribute('data-theme');
+      elements.themeToggle.textContent =
+        theme === 'light' ? '\u263C' : '\u263E';
+    }
+
+    function toggleDropdown(e) {
+      e.stopPropagation();
+      elements.dropdown.classList.toggle('show');
+    }
+
+    function renderLoginForm() {
+      elements.dropdown.innerHTML = `
+        <h3>Sign In</h3>
+        <div class="form-group">
+          <label for="nickname">Nickname</label>
+          <input type="text" id="nickname" placeholder="Enter nickname" value="julio1234">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter password" value="Password@123">
+        </div>
+        <div class="form-error" id="form-error"></div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="login()">Login</button>
+          <button class="btn btn-secondary" onclick="register()">Register</button>
+        </div>
+      `;
+    }
+
+    function renderUserInfo() {
+      const initial = state.user.nickname.charAt(0).toUpperCase();
+      elements.dropdown.innerHTML = `
+        <div class="user-info">
+          <div class="avatar">${initial}</div>
+          <div class="nickname">${state.user.nickname}</div>
+          <div class="status ${state.isConnected ? 'connected' : ''
+        }" id="user-status">
+            ${state.isConnected ? 'Connected' : 'Disconnected'}
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top: 16px;">
+          <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+      `;
+    }
+
+    function updateAccountButton() {
+      const dot = elements.accountBtn.querySelector('.status-dot');
+      if (state.user) {
+        elements.accountText.textContent = state.user.nickname;
+        dot.classList.toggle('connected', state.isConnected);
+      } else {
+        elements.accountText.textContent = 'Account';
+        dot.classList.remove('connected');
+      }
+    }
+
+    async function login() {
+      const nickname = document.getElementById('nickname').value.trim();
+      const password = document.getElementById('password').value;
+      const errorEl = document.getElementById('form-error');
+
+      if (!nickname || !password) {
+        showFormError('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/auth/signin`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({nickname, password}),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showFormError(data.message || 'Login failed');
+          return;
+        }
+
+        handleAuthSuccess(data);
+      } catch (err) {
+        showFormError('Network error. Is the server running?');
+      }
+    }
+
+    async function register() {
+      const nickname = document.getElementById('nickname').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!nickname || !password) {
+        showFormError('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/auth/signup`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({nickname, password}),
+        });
+
+        const data = await res.json();
+
+        if (res.status === 409) {
+          showFormError('User already exists. Try logging in.');
+          return;
+        }
+
+        if (!res.ok) {
+          showFormError(data.message || 'Registration failed');
+          return;
+        }
+
+        handleAuthSuccess(data);
+      } catch (err) {
+        showFormError('Network error. Is the server running?');
+      }
+    }
+
+    function handleAuthSuccess(data) {
+      state.token = data.token;
+      state.user = data.user;
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
+
+      renderUserInfo();
+      updateAccountButton();
+      elements.dropdown.classList.remove('show');
+      connect();
+      showToast('Logged in successfully!');
+    }
+
+    function logout() {
+      disconnect();
+      state.token = null;
+      state.user = null;
+      state.roomId = null;
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+
+      renderLoginForm();
+      updateAccountButton();
+      elements.chat.innerHTML = '';
+      renderEmptyState('Login to start chatting');
+      elements.messageInput.disabled = true;
+      elements.sendBtn.disabled = true;
+      elements.dropdown.classList.remove('show');
+      showToast('Logged out');
+    }
+
+    function showFormError(message) {
+      const errorEl = document.getElementById('form-error');
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+      }
+    }
+
+    function connect() {
+      if (!state.token) return;
+
+      updateStatus('Connecting...', false);
+
+      state.socket = io(API_URL, {
+        auth: {token: state.token},
+        reconnection: false,
+      });
+
+      setupSocketListeners();
+    }
+
+    function disconnect() {
+      if (state.socket) {
+        state.socket.disconnect();
+        state.socket = null;
+      }
+      state.isConnected = false;
+      state.reconnectAttempts = 0;
+      updateStatus('Disconnected', false);
+      updateAccountButton();
+      if (state.user) renderUserInfo();
+    }
+
+    function setupSocketListeners() {
+      const socket = state.socket;
+
+      socket.on('connect', () => {
+        state.isConnected = true;
+        state.reconnectAttempts = 0;
+        updateStatus('Connected', true);
+        updateAccountButton();
+        if (state.user) renderUserInfo();
+        enableInput();
+      });
+
+      socket.on('disconnect', (reason) => {
+        state.isConnected = false;
+        updateStatus('Disconnected', false);
+        updateAccountButton();
+        if (state.user) renderUserInfo();
+        disableInput();
+
+        if (
+          reason !== 'io server disconnect' &&
+          reason !== 'io client disconnect'
+        ) {
+          scheduleReconnect();
+        }
+      });
+
+      socket.on('connect_error', (err) => {
+        state.isConnected = false;
+        updateStatus(`Error: ${err.message}`, false);
+        if (err.message.includes('jwt') || err.message.includes('token')) {
+          logout();
+          showToast('Session expired. Please login again.', true);
+        } else {
+          scheduleReconnect();
+        }
+      });
+
+      socket.on('chat_global_id', (roomId) => {
+        state.roomId = roomId;
+        loadMessages();
+      });
+
+      socket.on('message_created', (message) => {
+        appendMessage(message, false);
+
+        const chat = elements.chat;
+        const distanceFromBottom =
+          chat.scrollHeight - chat.scrollTop - chat.clientHeight;
+        if (distanceFromBottom > 200) {
+          state.unreadCount++;
+          updateUnreadBadge();
+        } else {
+          scrollToBottom();
+        }
+      });
+
+      socket.on('user_typing', (data) => {
+        showTypingIndicator(data.nickname);
+      });
+    }
+
+    function scheduleReconnect() {
+      if (state.reconnectAttempts >= state.maxReconnectAttempts) {
+        updateStatus('Connection failed. Please refresh.', false);
+        showToast('Unable to connect. Please check your connection.', true);
+        return;
+      }
+
+      const delay = 1000 * Math.pow(2, state.reconnectAttempts);
+      state.reconnectAttempts++;
+      updateStatus(`Reconnecting in ${delay / 1000}s...`, false);
+
+      setTimeout(() => {
+        if (!state.isConnected && state.token) {
+          connect();
+        }
+      }, delay);
+    }
+
+    async function loadMessages() {
+      if (!state.roomId || !state.token) return;
+
+      showSkeleton();
+
+      try {
+        const res = await fetch(
+          `${API_URL}/messages?where=${state.roomId}&take=50&skip=0`,
+          {
+            headers: {Authorization: `Bearer ${state.token}`},
+          },
+        );
+
+        if (!res.ok) throw new Error('Failed to load messages');
+
+        const messages = await res.json();
+        hideSkeleton();
+        renderMessages(messages);
+      } catch (err) {
+        hideSkeleton();
+        showToast('Failed to load messages', true);
+      }
+    }
+
+    function renderMessages(messages) {
+      elements.chat.innerHTML = '';
+
+      if (messages.length === 0) {
+        renderEmptyState('No messages yet. Start the conversation!');
+        return;
+      }
+
+      messages.forEach((msg) => {
+        appendMessage(msg, false);
+      });
+
+      scrollToBottom(false);
+    }
+
+    function appendMessage(msg, animate = true) {
+      const exists = document.getElementById(msg.id);
+
+      if (exists) return;
+
+      const isOwn = msg.from.id === state.user.id;
+      const emptyState = document.getElementById('empty-state');
+
+      if (emptyState) emptyState.remove();
+
+      const messageEl = document.createElement('div');
+      messageEl.className = `message ${isOwn ? 'own' : 'other'}`;
+      if (!animate) messageEl.style.animation = 'none';
+
+      let replyHtml = '';
+      if (msg.reply) {
+        replyHtml = `
+          <div class="reply-preview">
+            <div class="reply-from">${msg.reply.from}</div>
+            <div class="reply-text">${escapeHtml(msg.reply.message)}</div>
+          </div>
+        `;
+      }
+
+      messageEl.innerHTML = `
+        <span class="sender" id="${msg.from.id}">${escapeHtml(msg.from.nickname)}</span>
+        <div class="bubble">
+          ${replyHtml}
+          ${escapeHtml(msg.message)}
+        </div>
+        <span class="time">${formatRelativeTime(msg.createdAt)}</span>
+      `;
+
+      elements.chat.appendChild(messageEl);
+    }
+
+    function sendMessage() {
+      const content = elements.messageInput.value.trim();
+      if (!content || !state.socket || !state.isConnected) return;
+
+      const message = {
+        message: content,
+        from: state.user.id,
+        where: state.roomId,
+        reply: null,
+      };
+
+      state.socket.emit('message_send', message, (error) => {
+        if (error) {
+          showToast(error.message || 'Failed to send message', true);
+        }
+      });
+
+      elements.messageInput.value = '';
+      elements.messageInput.style.height = 'auto';
+      scrollToBottom();
+    }
+
+    let lastTypingEmit = 0;
+    let typingTimeout = null;
+
+    function emitTyping() {
+      if (!state.socket || !state.isConnected || !state.roomId) return;
+
+      const now = Date.now();
+      if (now - lastTypingEmit > 2000) {
+        state.socket.emit('user_typing', {
+          where: state.roomId,
+          nickname: state.user.nickname,
+        });
+        lastTypingEmit = now;
+      }
+    }
+
+    function showTypingIndicator(nickname) {
+      state.typingUsers.set(nickname, Date.now());
+      updateTypingDisplay();
+
+      setTimeout(() => {
+        state.typingUsers.delete(nickname);
+        updateTypingDisplay();
+      }, 3000);
+    }
+
+    function updateTypingDisplay() {
+      const users = Array.from(state.typingUsers.keys());
+
+      if (users.length === 0) {
+        elements.typingIndicator.classList.remove('show');
+        elements.typingIndicator.innerHTML = '';
+        return;
+      }
+
+      let text;
+      if (users.length === 1) {
+        text = `${users[0]} is typing`;
+      } else if (users.length === 2) {
+        text = `${users[0]} and ${users[1]} are typing`;
+      } else {
+        text = `${users[0]} and ${users.length - 1} others are typing`;
+      }
+
+      elements.typingIndicator.innerHTML = `
+        ${text}
+        <span class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      `;
+      elements.typingIndicator.classList.add('show');
+    }
+
+    function handleInputChange() {
+      const input = elements.messageInput;
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+
+      emitTyping();
+    }
+
+    function handleInputKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function enableInput() {
+      elements.messageInput.disabled = false;
+      elements.sendBtn.disabled = false;
+      elements.messageInput.placeholder = 'Type a message...';
+    }
+
+    function disableInput() {
+      elements.messageInput.disabled = true;
+      elements.sendBtn.disabled = true;
+      elements.messageInput.placeholder = 'Connect to send messages...';
+    }
+
+    function checkScroll() {
+      const chat = elements.chat;
+      const distanceFromBottom =
+        chat.scrollHeight - chat.scrollTop - chat.clientHeight;
+
+      if (distanceFromBottom > 200) {
+        elements.scrollBtn.classList.add('visible');
+      } else {
+        elements.scrollBtn.classList.remove('visible');
+        state.unreadCount = 0;
+        updateUnreadBadge();
+      }
+    }
+
+    function scrollToBottom(smooth = true) {
+      elements.chat.scrollTo({
+        top: elements.chat.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+      state.unreadCount = 0;
+      updateUnreadBadge();
+    }
+
+    function updateUnreadBadge() {
+      if (state.unreadCount > 0) {
+        elements.unreadBadge.textContent =
+          state.unreadCount > 99 ? '99+' : state.unreadCount;
+        elements.unreadBadge.classList.add('show');
+      } else {
+        elements.unreadBadge.classList.remove('show');
+      }
+    }
+
+    function showSkeleton() {
+      elements.chat.innerHTML = `
+        <div class="skeleton-container">
+          <div class="skeleton-message other">
+            <div class="skeleton skeleton-sender"></div>
+            <div class="skeleton skeleton-bubble"></div>
+          </div>
+          <div class="skeleton-message own">
+            <div class="skeleton skeleton-bubble"></div>
+          </div>
+          <div class="skeleton-message other">
+            <div class="skeleton skeleton-sender"></div>
+            <div class="skeleton skeleton-bubble"></div>
+          </div>
+          <div class="skeleton-message other">
+            <div class="skeleton skeleton-sender"></div>
+            <div class="skeleton skeleton-bubble"></div>
+          </div>
+          <div class="skeleton-message own">
+            <div class="skeleton skeleton-bubble"></div>
+          </div>
+          <div class="skeleton-message other">
+            <div class="skeleton skeleton-sender"></div>
+            <div class="skeleton skeleton-bubble"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function hideSkeleton() {
+      const skeleton = elements.chat.querySelector('.skeleton-container');
+      if (skeleton) skeleton.remove();
+    }
+
+    function renderEmptyState(message) {
+      elements.chat.innerHTML = `
+        <div class="empty-state" id="empty-state">
+          <div class="icon">&#128172;</div>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    function updateStatus(text, connected) {
+      elements.statusText.textContent = text;
+      elements.statusDot.classList.toggle('connected', connected);
+    }
+
+    function showToast(message, isError = false) {
+      elements.toast.textContent = message;
+      elements.toast.className = 'show' + (isError ? ' error' : '');
+
+      setTimeout(() => {
+        elements.toast.className = '';
+      }, 3000);
+    }
+
+    function formatRelativeTime(isoString) {
+      const now = new Date();
+      const date = new Date(isoString);
+      const seconds = Math.floor((now - date) / 1000);
+
+      if (seconds < 60) return 'Just now';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+      if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+
+      return date.toLocaleDateString();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

@@ -10,6 +10,10 @@ io.use(authenticateTokenWs).on('connection', (socket) => {
   socket.join(globalRoomId);
   socket.emit('chat_global_id', globalRoomId);
 
+  socket.on('connection', (socket) => {
+    console.log('a user connected');
+  });
+
   socket.on(
     'message_send',
     async (
@@ -17,4 +21,8 @@ io.use(authenticateTokenWs).on('connection', (socket) => {
       acknowledgements: (e: ValidationError | InternalServerError) => void,
     ) => await createMessageFactory().handle(message, io, acknowledgements),
   );
+
+  socket.on('user_typing', (data: { where: string; nickname: string }) => {
+    socket.to(data.where).emit('user_typing', { nickname: data.nickname });
+  });
 });

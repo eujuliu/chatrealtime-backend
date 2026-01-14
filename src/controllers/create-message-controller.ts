@@ -16,7 +16,7 @@ const CreateMessageSchema = z
 export type CreateMessageProps = z.infer<typeof CreateMessageSchema>;
 
 export class CreateMessageController {
-  constructor(private createMessageUseCase: CreateMessageUseCase) {}
+  constructor(private createMessageUseCase: CreateMessageUseCase) { }
 
   async handle(
     message: CreateMessageProps,
