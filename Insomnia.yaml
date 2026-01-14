@@ -1,0 +1,182 @@
+type: spec.insomnia.rest/5.0
+schema_version: "5.1"
+name: Chat Realtime
+meta:
+  id: wrk_458088a038e041b4aaea7cb07ad77f47
+  created: 1768414629216
+  modified: 1768414629216
+  description: ""
+collection:
+  - url: "{{ _.addr }}/ping"
+    name: ping
+    meta:
+      id: req_8554b882519b47efbcaf3c1ba323ab27
+      created: 1768414649153
+      modified: 1768415110659
+      isPrivate: false
+      description: ""
+      sortKey: -1768414649153
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.addr }}/auth/signup"
+    name: /auth/signup
+    meta:
+      id: req_59cfe5917c3d41b9874838f8cb465fb9
+      created: 1768415113434
+      modified: 1768417812661
+      isPrivate: false
+      description: ""
+      sortKey: -1768415113434
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"nickname": "julio123",
+        	"password": "Password@123"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    scripts:
+      afterResponse: |-
+        const statusCode = insomnia.response.code;
+
+        if (statusCode === 200) {
+        	const body = insomnia.response.json();
+        	
+        insomnia.environment.set("token", body.token);
+        }
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.addr }}/auth/signin"
+    name: /auth/signin
+    meta:
+      id: req_8fa76ffc9ec44c239fcda02967c440b1
+      created: 1768415573762
+      modified: 1768415620264
+      isPrivate: false
+      description: ""
+      sortKey: -1768414881293.5
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"nickname": "julio1234",
+        	"password": "Password@123"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    scripts:
+      afterResponse: |-
+        const statusCode = insomnia.response.code;
+
+        if (statusCode === 200) {
+        	const body = insomnia.response.json();
+        	
+        insomnia.environment.set("token", body.token);
+        }
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.addr }}/messages"
+    name: messages
+    meta:
+      id: req_d74edd31b3d544d5a99569a41883c388
+      created: 1768415666599
+      modified: 1768415973266
+      isPrivate: false
+      description: ""
+      sortKey: -1768414765223.25
+    method: GET
+    parameters:
+      - name: take
+        value: "10"
+        description: ""
+        disabled: false
+      - name: skip
+        value: "0"
+        description: ""
+        disabled: false
+      - name: where
+        value: 75cbd0df-d756-43a3-a82e-bdbc929e3592
+        description: ""
+        disabled: false
+    headers:
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+      prefix: Bearer
+    scripts:
+      afterResponse: |-
+        const statusCode = insomnia.response.code;
+
+        if (statusCode === 200) {
+        	const body = insomnia.response.json();
+        }
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_ddaeb32c50b9d083a077fb8832100aea5c99c069
+    created: 1768414629228
+    modified: 1768416615121
+environments:
+  name: Base Environment
+  meta:
+    id: env_ddaeb32c50b9d083a077fb8832100aea5c99c069
+    created: 1768414629226
+    modified: 1768416615122
+    isPrivate: false
+  data:
+    addr: localhost:3000
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg1M2QxYzZlLTc2NGYtNDgzZi1iMzU1LTA5MGE2YjFjYjQxNSIsIm5pY2tuYW1lIjoianVsaW8xMjM0IiwiaWF0IjoxNzY4NDE2NjE1LCJleHAiOjE3Njg0NTk4MTV9.P1g92xpfYxiMKBO2Csd7ekwPQtyBEbU5djh-BmLI81Q
+spec:
+  meta:
+    id: spc_b5451090fa3d4a3bb6869cfd38df58c2
+    created: 1768414629221
+    modified: 1768414629221
